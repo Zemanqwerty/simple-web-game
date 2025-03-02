@@ -643,6 +643,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               position: 'absolute',
               bottom: '10px',
               right: '10px',
+              fontSize: '7px',
             }}
             onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
             onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
