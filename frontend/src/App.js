@@ -228,29 +228,50 @@ function App() {
 }
 
 function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu }) {
-  const handleMove = (direction) => {
-    socket.emit('move', direction);
+  const [movingDirection, setMovingDirection] = useState(null); // Храним текущее направление движения
+
+  const handleMoveStart = (direction) => {
+    if (movingDirection !== direction) {
+      setMovingDirection(direction);
+      socket.emit('move', direction); // Первое движение сразу
+    }
+  };
+
+  const handleMoveStop = () => {
+    setMovingDirection(null);
   };
 
   const handleShoot = () => {
     socket.emit('shoot');
   };
 
+  // Эффект для интервального движения
+  useEffect(() => {
+    let moveInterval;
+    if (movingDirection) {
+      moveInterval = setInterval(() => {
+        socket.emit('move', movingDirection);
+      }, 100); // Отправляем команду движения каждые 100 мс
+    }
+    return () => clearInterval(moveInterval);
+  }, [movingDirection, socket]);
+
+  // Обработка клавиш на ПК
   useEffect(() => {
     if (!isMobile) {
       const handleKeyDown = (event) => {
         switch (event.key) {
           case 'ArrowUp':
-            handleMove('up');
+            handleMoveStart('up');
             break;
           case 'ArrowDown':
-            handleMove('down');
+            handleMoveStart('down');
             break;
           case 'ArrowLeft':
-            handleMove('left');
+            handleMoveStart('left');
             break;
           case 'ArrowRight':
-            handleMove('right');
+            handleMoveStart('right');
             break;
           case ' ':
             handleShoot();
@@ -260,10 +281,33 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
         }
       };
 
+      const handleKeyUp = (event) => {
+        switch (event.key) {
+          case 'ArrowUp':
+            if (movingDirection === 'up') handleMoveStop();
+            break;
+          case 'ArrowDown':
+            if (movingDirection === 'down') handleMoveStop();
+            break;
+          case 'ArrowLeft':
+            if (movingDirection === 'left') handleMoveStop();
+            break;
+          case 'ArrowRight':
+            if (movingDirection === 'right') handleMoveStop();
+            break;
+          default:
+            break;
+        }
+      };
+
       window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener('keyup', handleKeyUp);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
+      };
     }
-  }, [isMobile]);
+  }, [isMobile, movingDirection]);
 
   const headerHeight = 60;
   const borderWidth = 12;
@@ -271,23 +315,27 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
   const gameHeight = window.innerHeight - headerHeight - borderWidth;
 
   const controlButtonStyle = {
-    width: '70px',
-    height: '70px',
+    width: '50px',
+    height: '50px',
     borderRadius: '8px',
     border: '4px solid #2c2f26',
     backgroundColor: '#6b705c',
     color: '#d9d2b6',
-    fontSize: '16px',
+    fontSize: '24px',
     cursor: 'pointer',
     boxShadow: '4px 4px 0 #000',
     transition: 'transform 0.1s',
     outline: 'none',
     fontFamily: "'Press Start 2P', cursive",
+    opacity: 0.7,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const shootButtonStyle = {
-    width: '70px',
-    height: '70px',
+    width: '50px',
+    height: '50px',
     borderRadius: '8px',
     border: '4px solid #2c2f26',
     backgroundColor: '#8b3a3a',
@@ -298,6 +346,10 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
     transition: 'transform 0.1s',
     outline: 'none',
     fontFamily: "'Press Start 2P', cursive",
+    opacity: 0.7,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const menuButtonStyle = {
@@ -320,6 +372,16 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
     boxShadow: 'inset 0 0 5px rgba(0, 0, 0, 0.5), 2px 2px 0 #000',
     backgroundImage: 'url(/textures/brick-wall.png)',
     backgroundSize: '16px 16px',
+  };
+
+  const upDownArrowStyle = {
+    ...controlButtonStyle,
+    textShadow: '2px 2px 0 #000, -2px -2px 0 #000',
+  };
+
+  const leftRightArrowStyle = {
+    ...controlButtonStyle,
+    textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000',
   };
 
   const player = gameState.players.find((p) => p.id === socket.id);
@@ -391,7 +453,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
           width: `${gameWidth}px`,
           height: `${gameHeight}px`,
           backgroundColor: '#5a5e4d',
-          backgroundImage: 'url(/textures/ground.png)',
+          backgroundImage: 'url(/textures/ground2.png)',
           backgroundSize: '32px 32px',
           border: '6px solid #2c2f26',
           borderRadius: '8px',
@@ -435,7 +497,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               top: Math.max(0, Math.min(player.y, gameHeight - 50)),
               width: '50px',
               height: '50px',
-              backgroundImage: 'url(/sprites/hero.png)',
+              backgroundImage: 'url(/sprites/hero1.png)',
               backgroundSize: 'cover',
               imageRendering: 'pixelated',
               transform: `rotate(${getRotationAngle(player.lastDirection)}deg)`,
@@ -453,7 +515,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               top: Math.max(0, Math.min(bot.y, gameHeight - 50)),
               width: '50px',
               height: '50px',
-              backgroundImage: 'url(/sprites/enemy.png)',
+              backgroundImage: 'url(/sprites/enemy1.png)',
               backgroundSize: 'cover',
               imageRendering: 'pixelated',
               transform: `rotate(${getRotationAngle(bot.direction)}deg)`,
@@ -482,7 +544,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
           <div
             style={{
               position: 'absolute',
-              bottom: '120px',
+              bottom: '60px', // Опускаем кнопки ниже
               left: '10px',
               width: '110px',
               height: '110px',
@@ -492,40 +554,48 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
                 "left . right"
                 ". down ."
               `,
+              gridTemplateRows: '1fr 1fr 1fr',
+              gridTemplateColumns: '1fr 1fr 1fr',
               gap: '5px',
+              justifyItems: 'center',
+              alignItems: 'center',
             }}
           >
             <button
-              onClick={() => handleMove('up')}
-              style={{ ...controlButtonStyle, gridArea: 'up' }}
+              style={{ ...upDownArrowStyle, gridArea: 'up' }}
+              onTouchStart={() => handleMoveStart('up')}
+              onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             >
               ↑
             </button>
             <button
-              onClick={() => handleMove('down')}
-              style={{ ...controlButtonStyle, gridArea: 'down' }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              ↓
-            </button>
-            <button
-              onClick={() => handleMove('left')}
-              style={{ ...controlButtonStyle, gridArea: 'left' }}
+              style={{ ...leftRightArrowStyle, gridArea: 'left' }}
+              onTouchStart={() => handleMoveStart('left')}
+              onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             >
               ←
             </button>
             <button
-              onClick={() => handleMove('right')}
-              style={{ ...controlButtonStyle, gridArea: 'right' }}
+              style={{ ...leftRightArrowStyle, gridArea: 'right' }}
+              onTouchStart={() => handleMoveStart('right')}
+              onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             >
               →
+            </button>
+            <button
+              style={{ ...upDownArrowStyle, gridArea: 'down' }}
+              onTouchStart={() => handleMoveStart('down')}
+              onTouchEnd={handleMoveStop}
+              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
+              onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              ↓
             </button>
           </div>
         )}
@@ -538,6 +608,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               position: 'absolute',
               bottom: '10px',
               right: '10px',
+              fontSize: '7px'
             }}
             onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
             onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
