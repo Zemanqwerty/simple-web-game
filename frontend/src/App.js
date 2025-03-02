@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-const DEFAULT_HOST = 'http://localhost:5011';
+const DEFAULT_HOST = 'http://92.63.97.202:5000';
 const FALLBACK_HOST = 'http://192.168.0.107:5011';
 
 function App() {
