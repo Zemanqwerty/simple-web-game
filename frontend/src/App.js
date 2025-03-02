@@ -320,17 +320,15 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
     borderRadius: '8px',
     border: '4px solid #2c2f26',
     backgroundColor: '#6b705c',
-    color: '#d9d2b6',
-    fontSize: '24px',
     cursor: 'pointer',
     boxShadow: '4px 4px 0 #000',
     transition: 'transform 0.1s',
     outline: 'none',
-    fontFamily: "'Press Start 2P', cursive",
     opacity: 0.7,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundImage: 'url(/textures/arrow.png)', // Используем изображение стрелки
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
   };
 
   const shootButtonStyle = {
@@ -374,14 +372,28 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
     backgroundSize: '16px 16px',
   };
 
-  const upDownArrowStyle = {
+  const upArrowStyle = {
     ...controlButtonStyle,
-    textShadow: '2px 2px 0 #000, -2px -2px 0 #000',
+    transform: 'rotate(-90deg)', // Поворот для стрелки вверх
+    gridArea: 'up', // Привязываем к области "up"
   };
 
-  const leftRightArrowStyle = {
+  const downArrowStyle = {
     ...controlButtonStyle,
-    textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000',
+    transform: 'rotate(90deg)', // Поворот для стрелки вниз
+    gridArea: 'down', // Привязываем к области "down"
+  };
+
+  const leftArrowStyle = {
+    ...controlButtonStyle,
+    transform: 'rotate(180deg)', // Поворот для стрелки влево
+    gridArea: 'left', // Привязываем к области "left"
+  };
+
+  const rightArrowStyle = {
+    ...controlButtonStyle,
+    transform: 'rotate(0deg)', // Стрелка вправо — без поворота
+    gridArea: 'right', // Привязываем к области "right"
   };
 
   const player = gameState.players.find((p) => p.id === socket.id);
@@ -544,7 +556,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
           <div
             style={{
               position: 'absolute',
-              bottom: '60px', // Опускаем кнопки ниже
+              bottom: '60px',
               left: '10px',
               width: '110px',
               height: '110px',
@@ -562,41 +574,33 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
             }}
           >
             <button
-              style={{ ...upDownArrowStyle, gridArea: 'up' }}
+              style={upArrowStyle}
               onTouchStart={() => handleMoveStart('up')}
               onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              ↑
-            </button>
+            ></button>
             <button
-              style={{ ...leftRightArrowStyle, gridArea: 'left' }}
+              style={leftArrowStyle}
               onTouchStart={() => handleMoveStart('left')}
               onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              ←
-            </button>
+            ></button>
             <button
-              style={{ ...leftRightArrowStyle, gridArea: 'right' }}
+              style={rightArrowStyle}
               onTouchStart={() => handleMoveStart('right')}
               onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              →
-            </button>
+            ></button>
             <button
-              style={{ ...upDownArrowStyle, gridArea: 'down' }}
+              style={downArrowStyle}
               onTouchStart={() => handleMoveStart('down')}
               onTouchEnd={handleMoveStop}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              ↓
-            </button>
+            ></button>
           </div>
         )}
 
@@ -608,7 +612,7 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               position: 'absolute',
               bottom: '10px',
               right: '10px',
-              fontSize: '7px'
+              fontSize: '7px',
             }}
             onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
             onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
