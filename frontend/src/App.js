@@ -230,19 +230,28 @@ function App() {
 function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu }) {
   const [movingDirection, setMovingDirection] = useState(null); // Храним текущее направление движения
 
-  const handleMoveStart = (direction) => {
+  const handleMoveStart = (e, direction) => {
+    e.preventDefault(); // Предотвращаем стандартное поведение (выделение, контекстное меню)
     if (movingDirection !== direction) {
       setMovingDirection(direction);
       socket.emit('move', direction); // Первое движение сразу
     }
   };
 
-  const handleMoveStop = () => {
+  const handleMoveStop = (e) => {
+    e.preventDefault(); // Предотвращаем стандартное поведение
     setMovingDirection(null);
   };
 
-  const handleShoot = () => {
+  const handleShoot = (e) => {
+    e.preventDefault(); // Предотвращаем стандартное поведение
     socket.emit('shoot');
+  };
+
+  // Предотвращаем контекстное меню и выделение
+  const handlePreventDefault = (e) => {
+    e.preventDefault();
+    return false;
   };
 
   // Эффект для интервального движения
@@ -262,19 +271,19 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
       const handleKeyDown = (event) => {
         switch (event.key) {
           case 'ArrowUp':
-            handleMoveStart('up');
+            handleMoveStart(event, 'up');
             break;
           case 'ArrowDown':
-            handleMoveStart('down');
+            handleMoveStart(event, 'down');
             break;
           case 'ArrowLeft':
-            handleMoveStart('left');
+            handleMoveStart(event, 'left');
             break;
           case 'ArrowRight':
-            handleMoveStart('right');
+            handleMoveStart(event, 'right');
             break;
           case ' ':
-            handleShoot();
+            handleShoot(event);
             break;
           default:
             break;
@@ -284,16 +293,16 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
       const handleKeyUp = (event) => {
         switch (event.key) {
           case 'ArrowUp':
-            if (movingDirection === 'up') handleMoveStop();
+            if (movingDirection === 'up') handleMoveStop(event);
             break;
           case 'ArrowDown':
-            if (movingDirection === 'down') handleMoveStop();
+            if (movingDirection === 'down') handleMoveStop(event);
             break;
           case 'ArrowLeft':
-            if (movingDirection === 'left') handleMoveStop();
+            if (movingDirection === 'left') handleMoveStop(event);
             break;
           case 'ArrowRight':
-            if (movingDirection === 'right') handleMoveStop();
+            if (movingDirection === 'right') handleMoveStop(event);
             break;
           default:
             break;
@@ -329,6 +338,12 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
+    userSelect: 'none', // Отключаем выделение текста
+    WebkitUserSelect: 'none', // Для Webkit-браузеров
+    MozUserSelect: 'none', // Для Firefox
+    msUserSelect: 'none', // Для Edge
+    WebkitTouchCallout: 'none', // Отключаем контекстное меню на iOS
+    touchAction: 'manipulation', // Отключаем стандартное поведение долгого нажатия
   };
 
   const shootButtonStyle = {
@@ -348,6 +363,12 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    userSelect: 'none', // Отключаем выделение текста
+    WebkitUserSelect: 'none', // Для Webkit-браузеров
+    MozUserSelect: 'none', // Для Firefox
+    msUserSelect: 'none', // Для Edge
+    WebkitTouchCallout: 'none', // Отключаем контекстное меню на iOS
+    touchAction: 'manipulation', // Отключаем стандартное поведение долгого нажатия
   };
 
   const menuButtonStyle = {
@@ -572,35 +593,45 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               justifyItems: 'center',
               alignItems: 'center',
             }}
+            onContextMenu={handlePreventDefault}
+            onSelectStart={handlePreventDefault}
           >
             <button
               style={upArrowStyle}
-              onTouchStart={() => handleMoveStart('up')}
-              onTouchEnd={handleMoveStop}
+              onTouchStart={(e) => handleMoveStart(e, 'up')}
+              onTouchEnd={(e) => handleMoveStop(e)}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            ></button>
+              onContextMenu={handlePreventDefault}
+              onSelectStart={handlePreventDefault}
+            />
             <button
               style={leftArrowStyle}
-              onTouchStart={() => handleMoveStart('left')}
-              onTouchEnd={handleMoveStop}
+              onTouchStart={(e) => handleMoveStart(e, 'left')}
+              onTouchEnd={(e) => handleMoveStop(e)}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            ></button>
+              onContextMenu={handlePreventDefault}
+              onSelectStart={handlePreventDefault}
+            />
             <button
               style={rightArrowStyle}
-              onTouchStart={() => handleMoveStart('right')}
-              onTouchEnd={handleMoveStop}
+              onTouchStart={(e) => handleMoveStart(e, 'right')}
+              onTouchEnd={(e) => handleMoveStop(e)}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            ></button>
+              onContextMenu={handlePreventDefault}
+              onSelectStart={handlePreventDefault}
+            />
             <button
               style={downArrowStyle}
-              onTouchStart={() => handleMoveStart('down')}
-              onTouchEnd={handleMoveStop}
+              onTouchStart={(e) => handleMoveStart(e, 'down')}
+              onTouchEnd={(e) => handleMoveStop(e)}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            ></button>
+              onContextMenu={handlePreventDefault}
+              onSelectStart={handlePreventDefault}
+            />
           </div>
         )}
 
@@ -612,10 +643,11 @@ function GameScreen({ gameState, socket, roomId, isMobile, onReturnToMainMenu })
               position: 'absolute',
               bottom: '10px',
               right: '10px',
-              fontSize: '7px',
             }}
             onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
             onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onContextMenu={handlePreventDefault}
+            onSelectStart={handlePreventDefault}
           >
             Огонь
           </button>
